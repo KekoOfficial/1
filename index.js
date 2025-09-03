@@ -3,24 +3,23 @@
 const {
     default: makeWASocket,
     useMultiFileAuthState,
-    makeCacheableSignalSocket,
-    makeInMemoryStore,
-    PHONENUMBER_MCC,
     Browsers,
     DisconnectReason,
     delay
 } = require('@whiskeysockets/baileys');
+const P = require('pino');
+
+// Importa makeInMemoryStore de la manera correcta
+const { makeInMemoryStore } = require('@whiskeysockets/baileys/lib/Stores');
 
 // Variables de configuración
-const ownerNumbers = ['595984495031', '595986114722']; // ⚠️ CAMBIA ESTE NÚMERO POR TU NÚMERO COMPLETO CON CÓDIGO DE PAÍS
+const ownerNumbers = ['595984495031', '595986114722']; // ⚠️ CAMBIA ESTE NÚMERO POR TUS NÚMEROS
 const warnLimit = 2; // Número de advertencias antes de expulsar al usuario
 
-// Bases de datos temporales en memoria
-const store = makeInMemoryStore({});
-const antiLink = {}; // Estado del AntiLink por grupo
-const antiSpam = {}; // Estado del AntiSpam por grupo
-const slowMode = {}; // Duración del SlowMode por grupo
-const warnings = {}; // Advertencias por usuario
+// Crea la base de datos en memoria para almacenar la sesión
+const store = makeInMemoryStore({
+    logger: P().child({ level: 'silent' })
+});
 
 // Menús del bot
 const ownerMenu = `
@@ -85,6 +84,7 @@ async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('auth');
     const sock = makeWASocket({
         auth: state,
+        logger: P({ level: 'silent' }),
         printQRInTerminal: true,
         browser: Browsers.macOS('Desktop'),
     });
@@ -147,13 +147,11 @@ Escribe */menu* para ver la lista de comandos disponibles.
         const isAdmin = groupMembers.some(member => member.id === senderId && member.admin);
 
         // --- Lógica del AntiLink (NO EXPULSA A ADMINS) ---
-        if (antiLink[groupId]) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            if (body && urlRegex.test(body) && !isAdmin) {
-                await sock.sendMessage(groupId, { delete: m.key });
-                await sock.groupParticipantsUpdate(groupId, [senderId], "remove");
-                return sock.sendMessage(groupId, { text: `${createTimestamp()} ❌ ¡Enlace detectado! El AntiLink está activo y no se permite ninguna URL.` });
-            }
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        if (antiLink[groupId] && body && urlRegex.test(body) && !isAdmin) {
+            await sock.sendMessage(groupId, { delete: m.key });
+            await sock.groupParticipantsUpdate(groupId, [senderId], "remove");
+            return sock.sendMessage(groupId, { text: `${createTimestamp()} ❌ ¡Enlace detectado! El AntiLink está activo y no se permite ninguna URL.` });
         }
 
         if (body.startsWith('/')) {
