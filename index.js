@@ -6,7 +6,7 @@ const SENT_FILE = './sent.json'
 let sent = []
 
 // ---------------------------------------------------------------------------------------------------
-// Funciones de utilidad
+// Funciones de utilidad y persistencia
 // ---------------------------------------------------------------------------------------------------
 
 /**
@@ -81,7 +81,7 @@ async function sendMessageToUser(sock, groupJid, userJid) {
 }
 
 /**
- * Envía un mensaje de bienvenida a todos los miembros actuales del grupo.
+ * Envía un mensaje de bienvenida a todos los miembros actuales del grupo que no han sido contactados.
  * @param {import('@whiskeysockets/baileys').WASocket} sock - Instancia de la conexión de Baileys.
  * @param {string} groupJid - JID del grupo.
  * @returns {Promise<void>}
@@ -123,7 +123,6 @@ async function startBot() {
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update
         
-        // Manejar el QR
         if (qr) {
             console.log('Escanea este código QR con tu WhatsApp para vincular el dispositivo:')
             console.log(qr)
@@ -132,14 +131,17 @@ async function startBot() {
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode
             console.log(`Conexión cerrada. Razón: ${statusCode}`)
+            
             // Reintenta la conexión si no es un error de código de estado conocido (p. ej., 515)
+            // Esto asegura que el bot se reinicie si la conexión se pierde inesperadamente
             if (statusCode !== 515) {
                 console.log('Reconectando...')
                 startBot() 
             }
         } else if (connection === 'open') {
             console.log('Bot conectado a WhatsApp ✅')
-            // Ejecuta el envío de mensajes solo después de que la conexión esté abierta
+            
+            // Inicia el envío masivo de mensajes solo después de que la conexión esté abierta y lista
             const groupJid = 'XXXXXXX@g.us' // ⚠️ Pon aquí el JID del grupo
             await sendToGroup(sock, groupJid)
         }
