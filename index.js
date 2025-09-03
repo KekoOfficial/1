@@ -2,6 +2,7 @@ const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion,
 const P = require('pino')
 const fs = require('fs')
 
+// Archivo para mantener un registro de los usuarios a los que ya se les envió un mensaje.
 const SENT_FILE = './sent.json'
 let sent = []
 
@@ -10,7 +11,7 @@ let sent = []
 // ---------------------------------------------------------------------------------------------------
 
 /**
- * Carga los registros de usuarios a los que ya se les ha enviado un mensaje desde un archivo.
+ * Carga los registros de usuarios desde el archivo de persistencia.
  */
 function loadSentRecords() {
     try {
@@ -26,7 +27,7 @@ function loadSentRecords() {
 }
 
 /**
- * Guarda los registros de usuarios en un archivo.
+ * Guarda los registros de usuarios en el archivo de persistencia.
  */
 function saveSentRecords() {
     try {
@@ -48,11 +49,11 @@ function getDateTime() {
 }
 
 // ---------------------------------------------------------------------------------------------------
-// Lógica de envío de mensajes
+// Lógica de envío de mensajes y del bot
 // ---------------------------------------------------------------------------------------------------
 
 /**
- * Envía un mensaje de bienvenida a un usuario específico.
+ * Envía un mensaje de bienvenida a un usuario específico y lo registra.
  * @param {import('@whiskeysockets/baileys').WASocket} sock - Instancia de la conexión de Baileys.
  * @param {string} groupJid - JID del grupo.
  * @param {string} userJid - JID del usuario.
@@ -60,7 +61,7 @@ function getDateTime() {
  */
 async function sendMessageToUser(sock, groupJid, userJid) {
     if (sent.includes(userJid)) {
-        console.log(`Skipping ${userJid}: Ya se le ha enviado un mensaje.`)
+        console.log(`Omitiendo a ${userJid}: Ya se le ha enviado un mensaje.`)
         return
     }
 
@@ -74,7 +75,6 @@ async function sendMessageToUser(sock, groupJid, userJid) {
         sent.push(userJid)
         saveSentRecords()
         console.log(`Mensaje enviado a ${userJid} desde el grupo "${groupName}".`)
-
     } catch (err) {
         console.error(`No se pudo enviar mensaje a ${userJid}:`, err.message)
     }
@@ -101,10 +101,6 @@ async function sendToGroup(sock, groupJid) {
     }
 }
 
-// ---------------------------------------------------------------------------------------------------
-// Lógica principal del bot
-// ---------------------------------------------------------------------------------------------------
-
 /**
  * Inicia el bot y gestiona la conexión a WhatsApp.
  */
@@ -123,17 +119,18 @@ async function startBot() {
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update
         
+        // Muestra el código QR si está disponible.
         if (qr) {
             console.log('Escanea este código QR con tu WhatsApp para vincular el dispositivo:')
             console.log(qr)
         }
 
+        // Maneja el cierre de la conexión.
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode
             console.log(`Conexión cerrada. Razón: ${statusCode}`)
             
-            // Reintenta la conexión si no es un error de código de estado conocido (p. ej., 515)
-            // Esto asegura que el bot se reinicie si la conexión se pierde inesperadamente
+            // Reintenta la conexión si no es un error de código de estado conocido.
             if (statusCode !== 515) {
                 console.log('Reconectando...')
                 startBot() 
@@ -141,16 +138,16 @@ async function startBot() {
         } else if (connection === 'open') {
             console.log('Bot conectado a WhatsApp ✅')
             
-            // Inicia el envío masivo de mensajes solo después de que la conexión esté abierta y lista
+            // Inicia el envío masivo de mensajes solo después de una conexión exitosa.
             const groupJid = 'XXXXXXX@g.us' // ⚠️ Pon aquí el JID del grupo
             await sendToGroup(sock, groupJid)
         }
     })
 
-    // Guardar credenciales
+    // Guarda las credenciales de la sesión.
     sock.ev.on('creds.update', saveCreds)
 
-    // Evento: Detecta nuevos miembros añadidos al grupo
+    // Evento para detectar nuevos miembros añadidos al grupo.
     sock.ev.on('group-participants.update', async (update) => {
         const groupJid = update.id
         if (update.action === 'add') {
@@ -166,4 +163,5 @@ async function startBot() {
 // Ejecución del bot
 // ---------------------------------------------------------------------------------------------------
 
+// Inicia el bot al ejecutar el script.
 startBot()
