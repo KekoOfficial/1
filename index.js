@@ -123,6 +123,7 @@ async function startBot() {
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update
         
+        // Manejar el QR
         if (qr) {
             console.log('Escanea este código QR con tu WhatsApp para vincular el dispositivo:')
             console.log(qr)
@@ -138,6 +139,7 @@ async function startBot() {
             }
         } else if (connection === 'open') {
             console.log('Bot conectado a WhatsApp ✅')
+            // Ejecuta el envío de mensajes solo después de que la conexión esté abierta
             const groupJid = 'XXXXXXX@g.us' // ⚠️ Pon aquí el JID del grupo
             await sendToGroup(sock, groupJid)
         }
