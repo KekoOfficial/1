@@ -9,17 +9,21 @@ const {
 } = require('@whiskeysockets/baileys');
 const P = require('pino');
 
-// Importa makeInMemoryStore de la manera correcta
-const { makeInMemoryStore } = require('@whiskeysockets/baileys/lib/Stores');
+// Se usa makeCacheStore que es la forma actual de Baileys
+const { makeCacheStore } = require('@whiskeysockets/baileys');
+const store = makeCacheStore({
+    logger: P({ level: 'silent' })
+});
 
 // Variables de configuración
 const ownerNumbers = ['595984495031', '595986114722']; // ⚠️ CAMBIA ESTE NÚMERO POR TUS NÚMEROS
 const warnLimit = 2; // Número de advertencias antes de expulsar al usuario
 
-// Crea la base de datos en memoria para almacenar la sesión
-const store = makeInMemoryStore({
-    logger: P().child({ level: 'silent' })
-});
+// Bases de datos temporales en memoria
+const antiLink = {}; // Estado del AntiLink por grupo
+const antiSpam = {}; // Estado del AntiSpam por grupo
+const slowMode = {}; // Duración del SlowMode por grupo
+const warnings = {}; // Advertencias por usuario
 
 // Menús del bot
 const ownerMenu = `
