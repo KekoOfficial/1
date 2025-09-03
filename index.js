@@ -10,7 +10,6 @@ const {
     DisconnectReason,
     delay
 } = require('@whiskeysockets/baileys');
-const translate = require('google-translate-api-free');
 
 // Variables de configuración
 const ownerNumbers = ['595984495031', '595986114722']; // ⚠️ CAMBIA ESTE NÚMERO POR TU NÚMERO COMPLETO CON CÓDIGO DE PAÍS
@@ -71,8 +70,7 @@ const memberMenu = `
 
 1. /config
 2. /logs
-3. /traducir [código_idioma] [texto]
-4. .ticket
+3. .ticket
 `;
 
 // Función para generar la marca de tiempo
@@ -164,7 +162,7 @@ Escribe */menu* para ver la lista de comandos disponibles.
 
             // Verificación de permisos
             if (!isOwner && !isAdmin) {
-                if (command !== 'menu' && command !== 'config' && command !== 'traducir') {
+                if (command !== 'menu' && command !== 'config') {
                     return sock.sendMessage(groupId, { text: `${createTimestamp()} ❌ No tienes permiso para usar este comando.` });
                 }
             }
@@ -219,19 +217,6 @@ Escribe */menu* para ver la lista de comandos disponibles.
                         await delay(500); // Pequeña pausa para evitar errores
                     }
                     sock.sendMessage(groupId, { text: `${createTimestamp()} ✅ ¡Todos los miembros han sido expulsados!` });
-                    break;
-                case 'traducir':
-                    if (args.length < 2) {
-                        return sock.sendMessage(groupId, { text: `${createTimestamp()} ❌ Uso: /traducir [código_idioma] [texto]` });
-                    }
-                    const langCode = args[0];
-                    const textToTranslate = args.slice(1).join(' ');
-                    try {
-                        const { text } = await translate(textToTranslate, { to: langCode });
-                        sock.sendMessage(groupId, { text: `${createTimestamp()} *Traducción (${langCode}):*\n\n${text}` });
-                    } catch (e) {
-                        sock.sendMessage(groupId, { text: `${createTimestamp()} ❌ Error al traducir. Asegúrate de que el código de idioma sea válido (ej. en, es, pt).` });
-                    }
                     break;
                 case '.ticket':
                     const ticketMessage = `📢 *TICKET DE SOPORTE*
