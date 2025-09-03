@@ -9,7 +9,7 @@ const {
     Browsers,
     DisconnectReason,
     delay
-} = require('@adiwajs/baileys');
+} = require('@whiskeysockets/baileys');
 const translate = require('google-translate-api-free');
 
 // Variables de configuración
