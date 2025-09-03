@@ -1,5 +1,6 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, jidNormalizedUser, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { Boom } = require('@hapi/boom');
+const P = require('pino');
 const fs = require('fs');
 
 const SENT_FILE = './sent.json';
@@ -10,7 +11,7 @@ let sent = [];
 // ---------------------------------------------------------------------------------------------------
 
 /**
- * Carga los registros de usuarios a los que ya se les ha enviado un mensaje desde un archivo.
+ * Carga los registros de usuarios desde el archivo de persistencia.
  */
 function loadSentRecords() {
     try {
@@ -26,7 +27,7 @@ function loadSentRecords() {
 }
 
 /**
- * Guarda los registros de usuarios en un archivo.
+ * Guarda los registros de usuarios en el archivo de persistencia.
  */
 function saveSentRecords() {
     try {
@@ -53,23 +54,23 @@ function getDateTime() {
 
 /**
  * Envía un mensaje de bienvenida a un usuario específico y lo registra.
- * @param {import('whatsapp-web.js').Client} client - Instancia de la conexión del cliente de WhatsApp.
- * @param {string} groupChatId - ID del chat del grupo.
- * @param {string} userJid - ID del usuario.
+ * @param {import('@whiskeysockets/baileys').WASocket} sock - Instancia de la conexión de Baileys.
+ * @param {string} groupJid - JID del grupo.
+ * @param {string} userJid - JID del usuario.
  * @returns {Promise<void>}
  */
-async function sendMessageToUser(client, groupChatId, userJid) {
+async function sendMessageToUser(sock, groupJid, userJid) {
     if (sent.includes(userJid)) {
         console.log(`Omitiendo a ${userJid}: Ya se le ha enviado un mensaje.`);
         return;
     }
 
     try {
-        const groupChat = await client.getChatById(groupChatId);
-        const groupName = groupChat.name;
+        const groupMetadata = await sock.groupMetadata(groupJid);
+        const groupName = groupMetadata.subject;
         const messageText = `Hola, soy un subbot. Puedes usar mis comandos con .help\nGrupo: ${groupName}\nFecha y hora: ${getDateTime()}`;
 
-        await client.sendMessage(userJid, messageText);
+        await sock.sendMessage(userJid, { text: messageText });
         
         sent.push(userJid);
         saveSentRecords();
@@ -81,66 +82,83 @@ async function sendMessageToUser(client, groupChatId, userJid) {
 
 /**
  * Envía un mensaje de bienvenida a todos los miembros actuales del grupo que no han sido contactados.
- * @param {import('whatsapp-web.js').Client} client - Instancia de la conexión del cliente de WhatsApp.
- * @param {string} groupChatId - ID del chat del grupo.
+ * @param {import('@whiskeysockets/baileys').WASocket} sock - Instancia de la conexión de Baileys.
+ * @param {string} groupJid - JID del grupo.
  * @returns {Promise<void>}
  */
-async function sendToGroup(client, groupChatId) {
+async function sendToGroup(sock, groupJid) {
     try {
-        const groupChat = await client.getChatById(groupChatId);
-        const participants = groupChat.participants.map(p => p.id._serialized);
+        const groupMetadata = await sock.groupMetadata(groupJid);
+        const participants = groupMetadata.participants.map(p => jidNormalizedUser(p.id));
         
         console.log(`Verificando ${participants.length} participantes del grupo para el envío masivo...`);
         
         for (const userJid of participants) {
-            await sendMessageToUser(client, groupChatId, userJid);
+            await sendMessageToUser(sock, groupJid, userJid);
         }
     } catch (err) {
         console.error(`Error al enviar mensajes a todos los miembros del grupo: ${err.message}`);
     }
 }
 
+/**
+ * Inicia el bot y gestiona la conexión a WhatsApp.
+ */
+async function startBot() {
+    loadSentRecords();
+
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info');
+    const { version } = await fetchLatestBaileysVersion();
+    const sock = makeWASocket({
+        version,
+        auth: state,
+        logger: P({ level: 'silent' }),
+    });
+
+    // Manejar eventos de conexión
+    sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect, qr } = update;
+        
+        if (qr) {
+            console.log('Escanea este código QR con tu WhatsApp para vincular el dispositivo:');
+            console.log(qr);
+        }
+
+        if (connection === 'close') {
+            const statusCode = lastDisconnect?.error?.output?.statusCode;
+            console.log(`Conexión cerrada. Razón: ${statusCode}`);
+            
+            if (statusCode !== DisconnectReason.loggedOut) {
+                console.log('Reconectando...');
+                startBot(); 
+            } else {
+                console.log('Sesión cerrada. Por favor, elimina la carpeta auth_info e inicia de nuevo.');
+            }
+        } else if (connection === 'open') {
+            console.log('Bot conectado a WhatsApp ✅');
+            
+            const groupJid = 'XXXXXXX@g.us'; // ⚠️ Pon aquí el JID del grupo
+            await sendToGroup(sock, groupJid);
+        }
+    });
+
+    // Guarda las credenciales de la sesión.
+    sock.ev.on('creds.update', saveCreds);
+
+    // Evento para detectar nuevos miembros añadidos al grupo.
+    sock.ev.on('group-participants.update', async (update) => {
+        const groupJid = update.id;
+        if (update.action === 'add') {
+            for (const participant of update.participants) {
+                const normalized = jidNormalizedUser(participant);
+                await sendMessageToUser(sock, groupJid, normalized);
+            }
+        }
+    });
+}
+
 // ---------------------------------------------------------------------------------------------------
-// Lógica principal del bot
+// Ejecución del bot
 // ---------------------------------------------------------------------------------------------------
 
-// Carga los registros al inicio del script.
-loadSentRecords();
-
-const client = new Client({
-    authStrategy: new LocalAuth({ clientId: 'bot-client' }),
-    puppeteer: {
-        args: ['--no-sandbox'],
-    },
-});
-
-// Evento: Se activa cuando se necesita un código QR para la autenticación.
-client.on('qr', (qr) => {
-    console.log('Escanea este código QR con tu WhatsApp para vincular el dispositivo:');
-    qrcode.generate(qr, { small: true });
-});
-
-// Evento: Se activa cuando el cliente está listo y conectado.
-client.on('ready', async () => {
-    console.log('Cliente conectado con éxito ✅');
-    // Inicia el envío masivo de mensajes solo después de una conexión exitosa.
-    const groupChatId = 'XXXXXXX@g.us'; // ⚠️ Pon aquí el JID del grupo
-    await sendToGroup(client, groupChatId);
-});
-
-// Evento: Detecta cuando un miembro se une a un grupo.
-client.on('group_join', async (notification) => {
-    const groupChatId = notification.chatId;
-    const participantId = notification.recipientIds[0];
-    await sendMessageToUser(client, groupChatId, participantId);
-});
-
-// Evento: Se activa cuando la conexión se pierde.
-client.on('disconnected', (reason) => {
-    console.log('Cliente desconectado:', reason);
-    console.log('Reconectando...');
-    client.initialize();
-});
-
-// Inicia el proceso de autenticación y conexión.
-client.initialize();
+startBot();
