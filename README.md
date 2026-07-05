@@ -1,12 +1,22 @@
-# 🏰 PROYECTO-ALDEA-INFINITA
+# 🚀 PROYECTO NOADEV: ALDEA INFINITA
 
-Sistema de gestión y automatización para servidores de Minecraft.
+Sistema de gestión y automatización para servidores de Minecraft, integrado en el ecosistema **NoaDev**.
+
+## 🌟 NoaDev Integration
+
+Este repositorio forma parte de **NoaDev**, un Sistema Inteligente de Desarrollo Autónomo.
+Para más detalles sobre la visión y el manifiesto del proyecto, consulta:
+- [**NOADEV.md**](NOADEV.md) - Portal de entrada al sistema NoaDev.
+- [**EL_LIBRO_DE_LOS_LOGROS_INFINITOS.md**](EL_LIBRO_DE_LOS_LOGROS_INFINITOS.md) - El manifiesto de KekoOfficial.
 
 ## 📁 Estructura del Proyecto
 
 ```
-🏰 PROYECTO-ALDEA-INFINITA/
+🚀 PROYECTO NOADEV / ALDEA INFINITA
 │
+├── 📜 NOADEV.md       # Entrada al sistema NoaDev
+├── 📖 EL_LIBRO...     # Manifiesto NoaDev
+├── 📁 NoaDev/         # Laboratorio de experimentación
 ├── 📁 docs/           # Documentación oficial
 ├── 📁 config/         # Archivos de configuración
 ├── 📁 core/           # IA y coordinación de todos los bots
