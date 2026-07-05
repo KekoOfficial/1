@@ -3,6 +3,7 @@ const { Boom } = require('@hapi/boom');
 const P = require('pino');
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
+const CONFIG_LIDER = require('../../config/lider/configlider');
 
 const SENT_FILE = './sent.json';
 let sent = [];
@@ -57,7 +58,7 @@ async function sendMessageToUser(sock, groupJid, userJid) {
     try {
         const groupMetadata = await sock.groupMetadata(groupJid);
         const groupName = groupMetadata.subject;
-        const messageText = `Hola, soy un subbot. Puedes usar mis comandos con .help\nGrupo: ${groupName}\nFecha y hora: ${getDateTime()}`;
+        const messageText = `Hola, soy un subbot de ${CONFIG_LIDER.lider.nombre}. Puedes usar mis comandos con .help\nGrupo: ${groupName}\nFecha y hora: ${getDateTime()}`;
 
         await sock.sendMessage(userJid, { text: messageText });
 
