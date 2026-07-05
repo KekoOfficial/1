@@ -29,3 +29,4 @@ logs/
 auth_info/
 sent.json
 backups/
+config/privado/

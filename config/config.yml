@@ -1,0 +1,27 @@
+# Configuración Global de Proyecto Aldea Infinita
+
+# 🌐 MODO DE OPERACIÓN
+modo: "privado" # "privado" (offline) o "publico" (online/Microsoft)
+
+# 🤖 LÍMITES DE INSTANCIAS
+limites:
+  termux: 150
+  cloud: 1000
+
+# 🧠 JERARQUÍA
+jerarquia:
+  cerebro: "core/sistema_corazon"
+  corazon: "core/corazon_bot.js"
+  lider: "config/lider/configlider.js"
+
+# 🛠️ AJUSTES DE COMPORTAMIENTO
+comportamiento:
+  humano: true
+  frecuencia_reaccion: 200 # ms
+  distancia_seguimiento: 2 # bloques
+
+# 📡 CONEXIÓN
+servidor:
+  ip: "localhost"
+  puerto: 25565
+  version: "1.20.1"
