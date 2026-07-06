@@ -18,7 +18,14 @@ Explora nuestras capacidades:
 - [Aprendizaje](ia/aprendizaje/)
 - [Programación](ia/programacion/)
 - [Seguridad](ia/seguridad/)
-- ...y muchos más en el directorio [ia/](ia/).
+- [**Gestión de Logros**](ia/github/) - El motor para conquistar GitHub.
+
+## 🏆 Sistema de Logros Supremos
+
+NoaDev incluye un motor dedicado a monitorizar y facilitar la obtención de insignias en GitHub:
+- [**Guía de Logros**](docs/guia_logros_supremos.md) - Estrategias para ganar +400 logros.
+- **Motor de Tracking**: `ia/github/logros_engine.js`
+- **Automatización**: `scripts/github_achievement_automation.js`
 
 ## 🏛️ Laboratorio NoaDev
 

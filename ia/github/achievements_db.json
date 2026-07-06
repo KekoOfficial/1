@@ -1,0 +1,102 @@
+{
+  "official_achievements": [
+    {
+      "id": "pull_shark",
+      "name": "Pull Shark",
+      "description": "Opened pull requests that have been merged.",
+      "tiers": [
+        {"level": "Base", "requirement": "2 PRs merged"},
+        {"level": "Bronze", "requirement": "16 PRs merged"},
+        {"level": "Silver", "requirement": "128 PRs merged"},
+        {"level": "Gold", "requirement": "1024 PRs merged"}
+      ]
+    },
+    {
+      "id": "quickdraw",
+      "name": "Quickdraw",
+      "description": "Closed an issue or pull request within 5 minutes of opening.",
+      "tiers": [{"level": "Base", "requirement": "1 time"}]
+    },
+    {
+      "id": "yolo",
+      "name": "YOLO",
+      "description": "Merged a pull request without code review.",
+      "tiers": [{"level": "Base", "requirement": "1 time"}]
+    },
+    {
+      "id": "galaxy_brain",
+      "name": "Galaxy Brain",
+      "description": "Had your answer accepted in a discussion.",
+      "tiers": [
+        {"level": "Base", "requirement": "2 accepted answers"},
+        {"level": "Bronze", "requirement": "8 accepted answers"},
+        {"level": "Silver", "requirement": "16 accepted answers"},
+        {"level": "Gold", "requirement": "32 accepted answers"}
+      ]
+    },
+    {
+      "id": "starstruck",
+      "name": "Starstruck",
+      "description": "Created a repository that has 16 stars or more.",
+      "tiers": [
+        {"level": "Base", "requirement": "16 stars"},
+        {"level": "Bronze", "requirement": "128 stars"},
+        {"level": "Silver", "requirement": "512 stars"},
+        {"level": "Gold", "requirement": "4096 stars"}
+      ]
+    },
+    {
+      "id": "heart_on_your_sleeve",
+      "name": "Heart on Your Sleeve",
+      "description": "Reacted to a comment with a ❤️ emoji.",
+      "tiers": [{"level": "Base", "requirement": "1 time"}]
+    },
+    {
+      "id": "pair_extraordinaire",
+      "name": "Pair Extraordinaire",
+      "description": "Coauthored in a merged pull request.",
+      "tiers": [
+        {"level": "Base", "requirement": "1 PR"},
+        {"level": "Bronze", "requirement": "10 PRs"},
+        {"level": "Silver", "requirement": "24 PRs"},
+        {"level": "Gold", "requirement": "48 PRs"}
+      ]
+    },
+    {
+      "id": "public_sponsor",
+      "name": "Public Sponsor",
+      "description": "Sponsoring open source work via GitHub Sponsors.",
+      "tiers": [{"level": "Base", "requirement": "Active sponsorship"}]
+    }
+  ],
+  "noadev_achievements": [
+    {
+      "id": "code_architect",
+      "name": "Arquitecto de Código",
+      "description": "Crear 100 archivos en el repositorio NoaDev.",
+      "count": 10
+    },
+    {
+      "id": "ia_whisperer",
+      "name": "Susurrador de IA",
+      "description": "Implementar lógica en 5 módulos de IA distintos.",
+      "count": 5
+    },
+    {
+      "id": "infinity_village_founder",
+      "name": "Fundador de Aldea Infinita",
+      "description": "Desplegar el primer bot de la Aldea.",
+      "count": 1
+    },
+    {
+      "id": "documentation_god",
+      "name": "Dios de la Documentación",
+      "description": "Escribir 50 archivos .md detallados.",
+      "count": 50
+    }
+  ],
+  "meta": {
+    "total_achievements_target": 400,
+    "system_version": "1.0.0"
+  }
+}
